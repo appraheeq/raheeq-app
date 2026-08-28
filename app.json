@@ -1,0 +1,45 @@
+{
+  "expo": {
+    "name": "رحيق | Raheeq",
+    "slug": "raheeq",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./icon.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./PngLogo/logo1.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#F8FAF8"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.raheeq.app"
+    },
+    "android": {
+      "package": "com.raheeq.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./icon.png",
+        "backgroundColor": "#127019"
+      },
+      "permissions": []
+    },
+    "web": {
+      "favicon": "./icon.png"
+    },
+    "plugins": [
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/Araboto-Normal.ttf",
+            "./assets/fonts/Araboto-Medium.ttf",
+            "./assets/fonts/Araboto-Bold.ttf"
+          ]
+        }
+      ]
+    ]
+  }
+}
