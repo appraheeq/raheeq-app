@@ -1,7 +1,8 @@
 {
   "expo": {
     "name": "رحيق | Raheeq",
-    "slug": "raheeq",
+    "slug": "raheeqapp",
+    "owner": "raheeqapp",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./icon.png",
