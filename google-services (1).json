@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "913942804744",
+    "project_id": "app-raheeq",
+    "storage_bucket": "app-raheeq.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:913942804744:android:5499b27e7997f581d854bd",
+        "android_client_info": {
+          "package_name": "com.raheeq.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "913942804744-qpioopntj3otddl0dnigkhdkpsopqvti.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.raheeq.app",
+            "certificate_hash": "dce7d5521993881ec3533f3ed9cb90ca42ce8619"
+          }
+        },
+        {
+          "client_id": "913942804744-1sac9dc2fkb1juncqb23i8tad6bkrl7q.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB_iv44-M4lB3IFTAWaFrtg77B07PKuarg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "913942804744-1sac9dc2fkb1juncqb23i8tad6bkrl7q.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
