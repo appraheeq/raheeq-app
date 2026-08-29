@@ -2,53 +2,24 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { UserProfile } from '../types/navigation';
 import { StorageService } from '../services/storageService';
 import { HapticService } from '../services/hapticService';
-import * as WebBrowser from 'expo-web-browser';
-import * as Google from 'expo-auth-session/providers/google';
-import { initializeApp, getApps } from 'firebase/app';
-import { 
-  getAuth, 
-  GoogleAuthProvider, 
-  signInWithCredential, 
-  signOut as firebaseSignOut 
-} from 'firebase/auth';
 
-WebBrowser.maybeCompleteAuthSession();
+interface LocalAuthContextType {
+  user: UserProfile | null;
+  isLoading: boolean;
+  saveUserProfile: (name: string, gender: 'male' | 'female') => Promise<void>;
+  updateGender: (gender: 'male' | 'female') => Promise<void>;
+  updateName: (name: string) => Promise<void>;
+}
 
-// تهيئة Firebase تلقائياً للاستفادة من google-services.json المرفوع مسبقاً
-const firebaseConfig = {
-  apiKey: "AIzaSyDummyKeyForExpoBuild", 
-  authDomain: "raheeq-app.firebaseapp.com",
-  projectId: "raheeq-app",
-  storageBucket: "raheeq-app.appspot.com",
-  messagingSenderId: "123456789",
-  appId: "1:123456789:web:abcdef"
-};
-
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
-const auth = getAuth(app);
-
-const AuthContext = createContext<any>(undefined);
+const AuthContext = createContext<LocalAuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    androidClientId: 'YOUR_ANDROID_CLIENT_ID.apps.googleusercontent.com',
-    iosClientId: 'YOUR_IOS_CLIENT_ID.apps.googleusercontent.com',
-    webClientId: 'YOUR_WEB_CLIENT_ID.apps.googleusercontent.com',
-  });
-
   useEffect(() => {
     loadUser();
   }, []);
-
-  useEffect(() => {
-    if (response?.type === 'success') {
-      const { id_token } = response.params;
-      handleFirebaseGoogleLogin(id_token);
-    }
-  }, [response]);
 
   const loadUser = async () => {
     try {
@@ -64,49 +35,25 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const handleFirebaseGoogleLogin = async (idToken: string) => {
+  // حفظ الملف الشخصي لأول مرة (بدون تسجيل دخول)
+  const saveUserProfile = async (name: string, gender: 'male' | 'female') => {
     try {
       setIsLoading(true);
-      const credential = GoogleAuthProvider.credential(idToken);
-      const result = await signInWithCredential(auth, credential);
-      const firebaseUser = result.user;
+      await HapticService.mediumTap();
 
-      const userProfile: UserProfile = {
-        id: firebaseUser.uid,
-        name: firebaseUser.displayName || 'مستخدم رحيق',
-        email: firebaseUser.email || '',
-        gender: null,
+      const newUser: UserProfile = {
+        id: `user_${Date.now()}`,
+        name: name.trim(),
+        email: '',
+        gender,
         createdAt: new Date().toISOString(),
       };
 
-      await StorageService.saveUserProfile(userProfile);
-      setUser(userProfile);
+      await StorageService.saveUserProfile(newUser);
+      setUser(newUser);
       await HapticService.success();
     } catch (e) {
-      console.error('Firebase Google login error', e);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const signInWithGoogle = async () => {
-    try {
-      await HapticService.mediumTap();
-      await promptAsync();
-    } catch (e) {
-      console.error('Google sign in prompt error', e);
-    }
-  };
-
-  const signOut = async () => {
-    try {
-      setIsLoading(true);
-      await HapticService.mediumTap();
-      await firebaseSignOut(auth);
-      await StorageService.removeUserProfile();
-      setUser(null);
-    } catch (e) {
-      console.error('Sign out error', e);
+      console.error('Save user profile error', e);
     } finally {
       setIsLoading(false);
     }
@@ -141,8 +88,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       value={{
         user,
         isLoading,
-        signInWithGoogle,
-        signOut,
+        saveUserProfile,
         updateGender,
         updateName,
       }}
