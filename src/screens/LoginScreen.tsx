@@ -14,29 +14,35 @@ import { RootStackParamList } from '../types/navigation';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { PrivacyModal } from '../components/PrivacyModal';
-import { GenderSelectionModal } from '../components/GenderSelectionModal';
+import { StorageService } from '../services/storageService';
+import { HapticService } from '../services/hapticService';
 import { FONTS } from '../constants/fonts';
-import { BRAND_COLORS } from '../constants/colors';
 import { STRINGS } from '../constants/strings';
 
 type LoginScreenProps = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
 export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
-  const { user, signInWithGoogle, isLoading } = useAuth();
   const { theme, isDark } = useTheme();
-
   const [privacyModalVisible, setPrivacyModalVisible] = useState<boolean>(false);
-  const [genderModalVisible, setGenderModalVisible] = useState<boolean>(false);
 
-  const handleGoogleSignIn = async () => {
-    await signInWithGoogle();
-    // After signing in, open Gender modal for initial setup
-    setGenderModalVisible(true);
-  };
+  // دالة المتابعة بدون حساب والانتقال المباشر للشاشة الرئيسية
+  const handleContinueWithoutAccount = async () => {
+    try {
+      await HapticService.mediumTap();
+      
+      const guestUser = {
+        id: `guest_${Date.now()}`,
+        name: 'مستخدم رحيق',
+        email: '',
+        gender: null,
+        createdAt: new Date().toISOString(),
+      };
 
-  const handleGenderModalClose = () => {
-    setGenderModalVisible(false);
-    navigation.replace('Main');
+      await StorageService.saveUserProfile(guestUser);
+      navigation.replace('Main');
+    } catch (e) {
+      console.error('Continue without account error', e);
+    }
   };
 
   const logoSource = isDark
@@ -65,20 +71,20 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
           <Text style={[styles.title, { color: theme.text }]}>
             {STRINGS.welcome} في رحيق
           </Text>
-          <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
-            {STRINGS.welcomeSub}
+          {/* النص الأصفر الجديد المطلوب */}
+          <Text style={styles.yellowSubtitle}>
+            سجل معنا بلا حاجة لحساب او نقل اي بيانات لك
           </Text>
         </View>
 
         {/* Action Buttons Section */}
         <View style={styles.actionSection}>
-          {/* Google Sign In Button */}
+          {/* زر المتابعة بدون حساب */}
           <TouchableOpacity
             activeOpacity={0.85}
-            onPress={handleGoogleSignIn}
-            disabled={isLoading}
+            onPress={handleContinueWithoutAccount}
             style={[
-              styles.googleButton,
+              styles.continueButton,
               {
                 backgroundColor: theme.card,
                 borderColor: theme.border,
@@ -86,16 +92,13 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
               },
             ]}
           >
-            <View style={styles.googleIconContainer}>
-              <Ionicons name="logo-google" size={22} color="#EA4335" />
-            </View>
-            <Text style={[styles.googleButtonText, { color: theme.text }]}>
-              {STRINGS.googleSignIn}
+            <Text style={[styles.continueButtonText, { color: theme.text }]}>
+              المتابعة بدون حساب
             </Text>
           </TouchableOpacity>
 
           <Text style={[styles.hintText, { color: theme.textMuted }]}>
-            {STRINGS.googleSignInHint}
+            التسجيل محلي وآمن بضغطة زر
           </Text>
 
           {/* Privacy Policy Link */}
@@ -125,12 +128,6 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
       <PrivacyModal
         visible={privacyModalVisible}
         onClose={() => setPrivacyModalVisible(false)}
-      />
-
-      {/* Optional Gender Selection Modal */}
-      <GenderSelectionModal
-        visible={genderModalVisible}
-        onClose={handleGenderModalClose}
       />
     </SafeAreaView>
   );
@@ -162,24 +159,25 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     textAlign: 'center',
   },
-  subtitle: {
-    fontSize: 14,
+  yellowSubtitle: {
+    fontSize: 15,
     fontFamily: FONTS.regular,
     textAlign: 'center',
     lineHeight: 24,
     paddingHorizontal: 20,
+    color: '#FFD700', // اللون الأصفر المطلوب
   },
   actionSection: {
     width: '100%',
     alignItems: 'center',
     marginBottom: 20,
   },
-  googleButton: {
+  continueButton: {
     flexDirection: 'row-reverse',
     alignItems: 'center',
     justifyContent: 'center',
     width: '100%',
-    paddingVertical: 15,
+    paddingVertical: 16,
     paddingHorizontal: 20,
     borderRadius: 16,
     borderWidth: 1.5,
@@ -189,12 +187,10 @@ const styles = StyleSheet.create({
     elevation: 3,
     marginBottom: 10,
   },
-  googleIconContainer: {
-    marginLeft: 12,
-  },
-  googleButtonText: {
+  continueButtonText: {
     fontSize: 16,
     fontFamily: FONTS.bold,
+    textAlign: 'center',
   },
   hintText: {
     fontSize: 12,
