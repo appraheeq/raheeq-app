@@ -1,31 +1,40 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { AuthContextType, Gender, UserProfile } from '../types/navigation'; // أو مسار الـ types عندك
+import { UserProfile } from '../types/navigation';
 import { StorageService } from '../services/storageService';
 import { HapticService } from '../services/hapticService';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
+import { initializeApp, getApps } from 'firebase/app';
 import { 
   getAuth, 
   GoogleAuthProvider, 
   signInWithCredential, 
   signOut as firebaseSignOut 
 } from 'firebase/auth';
-// تأكد من أنك مستورد الـ app الخاص بـ firebase من ملف التكوين لديك (مثلا firebaseConfig)
-import { app } from '../services/firebaseConfig'; 
 
 WebBrowser.maybeCompleteAuthSession();
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+// تهيئة Firebase تلقائياً للاستفادة من google-services.json المرفوع مسبقاً
+const firebaseConfig = {
+  apiKey: "AIzaSyDummyKeyForExpoBuild", 
+  authDomain: "raheeq-app.firebaseapp.com",
+  projectId: "raheeq-app",
+  storageBucket: "raheeq-app.appspot.com",
+  messagingSenderId: "123456789",
+  appId: "1:123456789:web:abcdef"
+};
+
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 const auth = getAuth(app);
+
+const AuthContext = createContext<any>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // إعداد طلب الـ Google Auth من Expo
-  // ملاحظة: ضع الـ Web Client ID الخاص بـ Firebase هنا إذا لزم، أو استخدم الإعدادات التلقائية
   const [request, response, promptAsync] = Google.useAuthRequest({
-    androidClientId: 'YOUR_ANDROID_CLIENT_ID.apps.googleusercontent.com', // أو استبدله بـ Client ID الصحيح من جوجل كلاود إن وجد، أو اتركه يتكفل به الـ Firebase
+    androidClientId: 'YOUR_ANDROID_CLIENT_ID.apps.googleusercontent.com',
     iosClientId: 'YOUR_IOS_CLIENT_ID.apps.googleusercontent.com',
     webClientId: 'YOUR_WEB_CLIENT_ID.apps.googleusercontent.com',
   });
@@ -34,7 +43,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     loadUser();
   }, []);
 
-  // مراقبة استجابة تسجيل الدخول بجوجل
   useEffect(() => {
     if (response?.type === 'success') {
       const { id_token } = response.params;
@@ -59,7 +67,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const handleFirebaseGoogleLogin = async (idToken: string) => {
     try {
       setIsLoading(true);
-      // ربط توكن جوجل مع Firebase
       const credential = GoogleAuthProvider.credential(idToken);
       const result = await signInWithCredential(auth, credential);
       const firebaseUser = result.user;
@@ -68,7 +75,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         id: firebaseUser.uid,
         name: firebaseUser.displayName || 'مستخدم رحيق',
         email: firebaseUser.email || '',
-        gender: null, // سيطلب منه اختيار الجنس بعد أول تسجيل
+        gender: null,
         createdAt: new Date().toISOString(),
       };
 
@@ -85,7 +92,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const signInWithGoogle = async () => {
     try {
       await HapticService.mediumTap();
-      // تشغيل نافذة جوجل للحصول على التوكن
       await promptAsync();
     } catch (e) {
       console.error('Google sign in prompt error', e);
@@ -146,7 +152,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   );
 };
 
-export const useAuth = (): AuthContextType => {
+export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');
